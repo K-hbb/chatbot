@@ -22,9 +22,9 @@ class Settings(BaseSettings):
     embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2"
     collection_name: str = "medical_knowledge"
 
-    # GenAI
+    # GenAI - FIXED: Use correct Gemini model name
     gemini_api_key: str | None = Field(default=None, validation_alias=AliasChoices('GEMINI_API_KEY','GOOGLE_API_KEY'))
-    gemini_model: str = "gemini-1.5-pro"
+    gemini_model: str = "gemini-1.5-flash"  # Use the standard Gemini API model name
 
     # CORS / Frontend
     frontend_origin: str = "http://localhost:5173"

@@ -1,4 +1,242 @@
-/* src/App.css */
+/* src/App.css - Connection screen styles */
+
+.connection-screen {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.connection-container {
+  text-align: center;
+  max-width: 600px;
+  width: 100%;
+}
+
+.connection-container h1 {
+  margin-bottom: 3rem;
+  font-size: 3rem;
+  font-weight: 700;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.health-status {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 3rem;
+  border-radius: 20px;
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  margin-bottom: 2rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.health-status h2 {
+  font-size: 1.8rem;
+  margin-bottom: 2rem;
+  font-weight: 600;
+}
+
+.status {
+  padding: 2rem;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.status-icon {
+  font-size: 3rem;
+  margin-bottom: 0.5rem;
+}
+
+.status.loading {
+  background: rgba(255, 255, 255, 0.1);
+  animation: pulse 2s infinite;
+}
+
+.status.success {
+  background: rgba(16, 185, 129, 0.2);
+  border: 2px solid rgba(16, 185, 129, 0.4);
+}
+
+.status.error {
+  background: rgba(239, 68, 68, 0.2);
+  border: 2px solid rgba(239, 68, 68, 0.4);
+}
+
+.status p {
+  margin: 0.5rem 0;
+  font-size: 1.1rem;
+}
+
+.status strong {
+  font-weight: 600;
+}
+
+.health-details {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 1.5rem;
+  border-radius: 10px;
+  margin: 1rem 0;
+  text-align: left;
+}
+
+.health-details p {
+  margin: 0.75rem 0;
+  font-size: 1rem;
+}
+
+.error-message {
+  font-size: 0.95rem;
+  opacity: 0.9;
+  margin: 1rem 0;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 1rem;
+  border-radius: 8px;
+  font-family: 'Courier New', monospace;
+}
+
+.retry-button, .start-chat-button {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 1.1rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  margin-top: 1rem;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+}
+
+.retry-button:hover, .start-chat-button:hover {
+  background: linear-gradient(135deg, #059669, #047857);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+}
+
+.retry-button {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+}
+
+.retry-button:hover {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+}
+
+.next-steps {
+  background: rgba(16, 185, 129, 0.1);
+  padding: 2.5rem;
+  border-radius: 16px;
+  border: 2px solid rgba(16, 185, 129, 0.3);
+  box-shadow: 0 4px 20px rgba(16, 185, 129, 0.1);
+}
+
+.next-steps h3 {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  color: #10b981;
+  font-weight: 600;
+}
+
+.next-steps p {
+  font-size: 1.1rem;
+  opacity: 0.95;
+  margin: 1rem 0;
+  line-height: 1.6;
+}
+
+.disclaimer-note {
+  font-size: 1rem !important;
+  opacity: 0.8 !important;
+  font-style: italic;
+  border-top: 1px solid rgba(16, 185, 129, 0.3);
+  padding-top: 1.5rem;
+  margin-top: 2rem !important;
+}
+
+@keyframes pulse {
+  0%, 100% { 
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% { 
+    opacity: 0.8;
+    transform: scale(1.02);
+  }
+}
+
+/* Responsive design for connection screen */
+@media (max-width: 768px) {
+  .connection-screen {
+    padding: 1rem;
+  }
+  
+  .connection-container h1 {
+    font-size: 2.2rem;
+    margin-bottom: 2rem;
+  }
+  
+  .health-status {
+    padding: 2rem;
+  }
+  
+  .health-status h2 {
+    font-size: 1.5rem;
+  }
+  
+  .status {
+    padding: 1.5rem;
+  }
+  
+  .status-icon {
+    font-size: 2.5rem;
+  }
+  
+  .next-steps {
+    padding: 2rem;
+  }
+  
+  .next-steps h3 {
+    font-size: 1.3rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .connection-container h1 {
+    font-size: 1.8rem;
+  }
+  
+  .health-status {
+    padding: 1.5rem;
+  }
+  
+  .health-status h2 {
+    font-size: 1.3rem;
+  }
+  
+  .status {
+    padding: 1rem;
+  }
+  
+  .next-steps {
+    padding: 1.5rem;
+  }
+  
+  .retry-button, .start-chat-button {
+    padding: 0.8rem 1.5rem;
+    font-size: 1rem;
+  }
+}
+
+/* Legacy styles for backward compatibility */
 .App {
   text-align: center;
   min-height: 100vh;
@@ -16,13 +254,13 @@
   font-size: calc(10px + 2vmin);
 }
 
-h1 {
+.App h1 {
   margin-bottom: 2rem;
   font-size: 2.5rem;
   font-weight: 700;
 }
 
-.health-status {
+.App .health-status {
   background: rgba(255, 255, 255, 0.1);
   padding: 2rem;
   border-radius: 16px;
@@ -32,50 +270,50 @@ h1 {
   min-width: 400px;
 }
 
-.health-status h2 {
+.App .health-status h2 {
   font-size: 1.5rem;
   margin-bottom: 1.5rem;
   font-weight: 600;
 }
 
-.status {
+.App .status {
   padding: 1rem;
   border-radius: 8px;
   margin-bottom: 1rem;
 }
 
-.status.loading {
+.App .status.loading {
   background: rgba(255, 255, 255, 0.1);
   animation: pulse 2s infinite;
 }
 
-.status.success {
+.App .status.success {
   background: rgba(16, 185, 129, 0.2);
   border: 1px solid rgba(16, 185, 129, 0.4);
 }
 
-.status.error {
+.App .status.error {
   background: rgba(239, 68, 68, 0.2);
   border: 1px solid rgba(239, 68, 68, 0.4);
 }
 
-.health-details {
+.App .health-details {
   text-align: left;
   margin-top: 1rem;
 }
 
-.health-details p {
+.App .health-details p {
   margin: 0.5rem 0;
   font-size: 0.9rem;
 }
 
-.error-message {
+.App .error-message {
   font-size: 0.8rem;
   opacity: 0.8;
   margin: 0.5rem 0;
 }
 
-button {
+.App button {
   background: rgba(255, 255, 255, 0.2);
   color: white;
   border: 1px solid rgba(255, 255, 255, 0.3);
@@ -86,30 +324,25 @@ button {
   transition: all 0.3s ease;
 }
 
-button:hover {
+.App button:hover {
   background: rgba(255, 255, 255, 0.3);
   transform: translateY(-2px);
 }
 
-.next-steps {
+.App .next-steps {
   background: rgba(16, 185, 129, 0.1);
   padding: 1.5rem;
   border-radius: 12px;
   border: 1px solid rgba(16, 185, 129, 0.3);
 }
 
-.next-steps h3 {
+.App .next-steps h3 {
   font-size: 1.3rem;
   margin-bottom: 0.5rem;
   color: #10b981;
 }
 
-.next-steps p {
+.App .next-steps p {
   font-size: 1rem;
   opacity: 0.9;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
 }

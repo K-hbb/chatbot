@@ -32,13 +32,25 @@ if not settings.gemini_api_key:
 else:
     genai.configure(api_key=settings.gemini_api_key)
     genai_configured = True
+
 model = None
 def _get_model():
     global model
     if model is None:
         if not genai_configured:
             raise RuntimeError("GEMINI_API_KEY not set in .env")
-        model = genai.GenerativeModel(settings.gemini_model)
+        
+        # Use the model that we know works from testing
+        model_name = "models/gemini-2.0-flash"
+        print(f"DEBUG: Creating Gemini model with name: {model_name}")
+        
+        try:
+            model = genai.GenerativeModel(model_name)
+            print(f"DEBUG: Successfully created model: {model_name}")
+        except Exception as e:
+            print(f"DEBUG: Failed to create model {model_name}: {e}")
+            raise RuntimeError(f"Could not create Gemini model: {e}")
+    
     return model
 
 @app.get("/health")
@@ -84,6 +96,8 @@ def build_prompt(question: str, contexts: List[str], metas: List[dict]) -> str:
     return "\n".join(lines)
 
 # --- Streaming Chat Endpoint ---
+# Replace the streaming chat endpoint in your backend/app/main.py with this version:
+
 @app.post("/chat")
 async def chat_stream(req: ChatRequest):
     """
@@ -91,22 +105,30 @@ async def chat_stream(req: ChatRequest):
     """
     def generate():
         try:
+            print(f"DEBUG: Starting chat request for: {req.question}")
+            
             # Safety check
             is_emerg, disclaimer = screen_safety(req.question)
+            print(f"DEBUG: Safety check - Emergency: {is_emerg}, Disclaimer length: {len(disclaimer)}")
             
             # Send safety info first
             yield f"data: {json.dumps({'type': 'safety', 'emergency': is_emerg, 'disclaimer': disclaimer})}\n\n"
             
             # Retrieve documents
             try:
+                print("DEBUG: Starting document retrieval...")
                 ids, docs, metas, sims = rag.query(req.question, k=5)
+                print(f"DEBUG: Retrieved {len(ids or [])} documents")
+                print(f"DEBUG: First doc preview: {(docs[0][:100] if docs and docs[0] else 'No docs')}")
             except Exception as e:
+                print(f"DEBUG: Retrieval failed: {e}")
                 logging.getLogger(__name__).exception("Retrieval failed: %s", e)
                 yield f"data: {json.dumps({'type': 'error', 'message': f'Retrieval error: {str(e)}'})}\n\n"
                 return
 
             contexts = docs or []
             context_metas = metas or []
+            print(f"DEBUG: Using {len(contexts)} contexts for generation")
 
             # Send sources
             srcs: list[Source] = []
@@ -124,34 +146,65 @@ async def chat_stream(req: ChatRequest):
             # Send sources to frontend
             sources_data = [src.model_dump() for src in srcs]
             yield f"data: {json.dumps({'type': 'sources', 'data': sources_data})}\n\n"
+            print(f"DEBUG: Sent {len(srcs)} sources to frontend")
 
             # Build prompt
             prompt = build_prompt(req.question, contexts, context_metas)
+            print(f"DEBUG: Built prompt length: {len(prompt)}")
+            print(f"DEBUG: Prompt preview: {prompt[:200]}...")
 
             # Get model
             try:
                 mdl = _get_model()
+                print(f"DEBUG: Got model successfully: {mdl}")
             except RuntimeError as e:
+                print(f"DEBUG: Model creation failed: {e}")
                 yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
                 return
 
             # Stream generation
             try:
-                # Use Gemini's streaming if available
+                print(f"DEBUG: About to call generate_content...")
+                print(f"DEBUG: Model details: {mdl}")
+                
+                # Use Gemini's streaming
                 response = mdl.generate_content(prompt, stream=True)
+                print(f"DEBUG: generate_content call successful, got response object")
+                
+                has_content = False
+                chunk_count = 0
                 
                 for chunk in response:
-                    if chunk.text:
+                    chunk_count += 1
+                    print(f"DEBUG: Processing chunk {chunk_count}")
+                    
+                    if hasattr(chunk, 'text') and chunk.text:
+                        has_content = True
+                        chunk_text = chunk.text
+                        print(f"DEBUG: Chunk {chunk_count} text length: {len(chunk_text)}")
+                        print(f"DEBUG: Chunk {chunk_count} preview: {chunk_text[:50]}...")
                         # Send each text chunk as it arrives
-                        yield f"data: {json.dumps({'type': 'text', 'data': chunk.text})}\n\n"
+                        yield f"data: {json.dumps({'type': 'text', 'data': chunk_text})}\n\n"
+                    else:
+                        print(f"DEBUG: Chunk {chunk_count} has no text: {chunk}")
+                
+                print(f"DEBUG: Streaming complete. Total chunks: {chunk_count}, Had content: {has_content}")
+                
+                if not has_content:
+                    print("DEBUG: No content received from Gemini, sending fallback")
+                    fallback_text = "I apologize, but I didn't receive any content from the AI model. Please try again."
+                    yield f"data: {json.dumps({'type': 'text', 'data': fallback_text})}\n\n"
                 
                 # Send completion signal
                 yield f"data: {json.dumps({'type': 'done'})}\n\n"
+                print("DEBUG: Sent completion signal")
                 
             except Exception as e:
+                print(f"DEBUG: Exception during generation: {type(e).__name__}: {e}")
                 logging.getLogger(__name__).exception("Gemini generation failed: %s", e)
                 
                 # Fallback: send retrieval-only response
+                print("DEBUG: Sending retrieval-only fallback")
                 tops = []
                 for i, (d, m) in enumerate(zip(contexts, context_metas), 1):
                     title = (m or {}).get("title", f"Doc {i}")
@@ -160,15 +213,19 @@ async def chat_stream(req: ChatRequest):
                     if i >= 2:
                         break
                 
-                fallback_text = (
-                    "I'm having trouble generating a full answer right now. "
-                    "Here are key points from the retrieved context:\n\n" + "\n".join(tops)
-                )
+                if tops:
+                    fallback_text = (
+                        "I'm having trouble generating a full answer right now. "
+                        "Here are key points from the retrieved context:\n\n" + "\n".join(tops)
+                    )
+                else:
+                    fallback_text = "I'm having trouble generating an answer. Please try rephrasing your question."
                 
                 yield f"data: {json.dumps({'type': 'text', 'data': fallback_text})}\n\n"
                 yield f"data: {json.dumps({'type': 'done'})}\n\n"
 
         except Exception as e:
+            print(f"DEBUG: Top-level exception: {type(e).__name__}: {e}")
             logging.getLogger(__name__).exception("Streaming chat failed: %s", e)
             yield f"data: {json.dumps({'type': 'error', 'message': 'An unexpected error occurred'})}\n\n"
 
